@@ -2,6 +2,8 @@
 
 English | [中文](README.zh.md)
 
+> **Fork of DeepSeek Harness**: This repository is a modified fork of [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). It keeps all the capabilities of the original framework and adds a memory system on top: a durable memory plugin (`dsh-memory`), a portable-docs panel (`ui-docs`) for browsing and editing documents beside the conversation, and a memory settings page (`ui-settings-memory`). The original project is developed by [DeepSeek AI](https://deepseek.com) and released under the [MIT](LICENSE) license.
+
 DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com).
 
 It uses an architecture where **everything is a plugin**, and is powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).
@@ -49,6 +51,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 Start with the [development guide](docs/development.md) and [architecture documentation](docs/architecture.md).
 
 For agents, follow [AGENTS.md](AGENTS.md).
+
+## Acknowledgments
+
+- [DeepSeek AI](https://deepseek.com) — original author of [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness), on which this project is based.
+
+## Contributors
+
+- [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) by [DeepSeek AI](https://deepseek.com) — the upstream project and its original contributors, on which this fork is based.
 
 ## License
 
