@@ -27,6 +27,10 @@ export interface ILayout {
   openDetails(): void
   /** Close the details panel. */
   closeDetails(): void
+  /** Open the portable-docs panel (no-op when already open). */
+  openDocs(): void
+  /** Close the portable-docs panel. */
+  closeDocs(): void
 }
 
 /** Cross-plugin panel-action face (ctx.layout). */
@@ -57,6 +61,16 @@ export class LayoutController implements ILayout {
   /** Close the details panel. */
   closeDetails(): void {
     this.#require().closeDetails()
+  }
+
+  /** Open the portable-docs panel (no-op when already open). */
+  openDocs(): void {
+    this.#require().openDocs()
+  }
+
+  /** Close the portable-docs panel. */
+  closeDocs(): void {
+    this.#require().closeDocs()
   }
 
   #require(): PanelActions {

@@ -62,6 +62,10 @@ import {
 } from '../api/credentials.schema.ts'
 import { llmDiscoverModelsValueSchema, llmModelsValueSchema, llmProvidersValueSchema } from '../api/llm.schema.ts'
 import {
+  memoryConfigValueSchema, memoryDeleteValueSchema, memoryGetValueSchema,
+  memoryListValueSchema, memoryStatusValueSchema, memoryUpdateValueSchema,
+} from '../api/memory.schema.ts'
+import {
   subagentHistoryValueSchema,
   subagentInterruptValueSchema,
   subagentListValueSchema,
@@ -161,6 +165,14 @@ export interface IApiClient {
     models(payload: RequestPayload<'llm.models'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'llm.models'>>>
     discoverModels(payload: RequestPayload<'llm.discoverModels'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'llm.discoverModels'>>>
   }
+  memory: {
+    status(payload: RequestPayload<'memory.status'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'memory.status'>>>
+    list(payload: RequestPayload<'memory.list'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'memory.list'>>>
+    get(payload: RequestPayload<'memory.get'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'memory.get'>>>
+    delete(payload: RequestPayload<'memory.delete'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'memory.delete'>>>
+    update(payload: RequestPayload<'memory.update'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'memory.update'>>>
+    config(payload: RequestPayload<'memory.config'>, signal?: AbortSignal): Promise<RpcResponse<ResponseValue<'memory.config'>>>
+  }
   /** client-response passthrough (rpcId is a backfill of the server-request's id — never minted here). */
   respond(message: ClientResponse, signal?: AbortSignal): Promise<RpcReceipt>
 }
@@ -222,6 +234,12 @@ const UNARY_VALUE_SCHEMAS: { [K in keyof RpcMethodMap]: z.ZodType<Wire<ResponseV
   'llm.providers': llmProvidersValueSchema,
   'llm.models': llmModelsValueSchema,
   'llm.discoverModels': llmDiscoverModelsValueSchema,
+  'memory.status': memoryStatusValueSchema,
+  'memory.list': memoryListValueSchema,
+  'memory.get': memoryGetValueSchema,
+  'memory.delete': memoryDeleteValueSchema,
+  'memory.update': memoryUpdateValueSchema,
+  'memory.config': memoryConfigValueSchema,
 }
 
 /** Default timeout for bounded unary calls (rpc-compare 2026-07-19: a hung host must not leave callers pending forever). */
@@ -498,6 +516,15 @@ export abstract class AbstractApiClient implements IApiClient {
     providers: (payload, signal) => this.callUnary('llm.providers', payload, signal),
     models: (payload, signal) => this.callUnary('llm.models', payload, signal),
     discoverModels: (payload, signal) => this.callUnary('llm.discoverModels', payload, signal),
+  }
+
+  readonly memory: IApiClient['memory'] = {
+    status: (payload, signal) => this.callUnary('memory.status', payload, signal),
+    list: (payload, signal) => this.callUnary('memory.list', payload, signal),
+    get: (payload, signal) => this.callUnary('memory.get', payload, signal),
+    delete: (payload, signal) => this.callUnary('memory.delete', payload, signal),
+    update: (payload, signal) => this.callUnary('memory.update', payload, signal),
+    config: (payload, signal) => this.callUnary('memory.config', payload, signal),
   }
 
   readonly events: IApiClient['events'] = {

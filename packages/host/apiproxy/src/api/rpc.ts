@@ -98,6 +98,10 @@ export interface RpcErrorDetailsMap {
   'subagent-not-resumable': { childSessionId: SessionId }
   'subagent-unauthorized': { childSessionId: SessionId }
   'subagent-delivery-unavailable': { childSessionId: SessionId }
+  /** The memory system plugin is not mounted, so no memory domain answers. */
+  'memory-unavailable': {}
+  /** A requested memory entry does not exist. */
+  'not-found': {}
   'internal': {}
 }
 

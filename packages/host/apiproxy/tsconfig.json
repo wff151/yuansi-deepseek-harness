@@ -2,7 +2,11 @@
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "lib/types"
+    "outDir": "lib/types",
+    "paths": {
+      "@deepseek-ai/dsh-memory": ["../../memory/dsh-memory/src"],
+      "@deepseek-ai/dsh-scope": ["../../core/scope/src"]
+    }
   },
   "include": [
     "src"
@@ -100,6 +104,9 @@
     },
     {
       "path": "../../util/native-command"
+    },
+    {
+      "path": "../../memory/dsh-memory"
     }
   ]
 }

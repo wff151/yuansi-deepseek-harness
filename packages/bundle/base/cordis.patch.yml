@@ -374,6 +374,14 @@
     - id: tool-goal
       name: '@deepseek-ai/dsh-tool-goal'
 
+    # The model-facing memory system: durable public / short-term / permanent /
+    # portable / evolution memory over the dsh-memory domain. The domain and
+    # `memory` service are host-plane (one durable domain per process); the
+    # tools register into the shared registry and the snapshot context follows
+    # each agent's session.
+    - id: memory
+      name: '@deepseek-ai/dsh-memory'
+
     # Fresh-agent Ralph iteration over a build-time-fixed script.
     - id: tool-ralph
       name: '@deepseek-ai/dsh-tool-ralph'

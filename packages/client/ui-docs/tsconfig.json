@@ -1,0 +1,64 @@
+{
+  "extends": "../../../tsconfig.base.client.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types",
+    "paths": {
+      "react": ["../../../node_modules/.pnpm/@types+react@18.3.31/node_modules/@types/react"],
+      "react/jsx-runtime": ["../../../node_modules/.pnpm/@types+react@18.3.31/node_modules/@types/react/jsx-runtime.d.ts"],
+      "csstype": ["../../../node_modules/.pnpm/csstype@3.2.3/node_modules/csstype"],
+      "prop-types": ["../../../node_modules/.pnpm/@types+prop-types@15.7.15/node_modules/@types/prop-types"],
+      "@types/react": ["../../../node_modules/.pnpm/@types+react@18.3.31/node_modules/@types/react"],
+      "@deepseek-ai/dsh-client-runtime": ["../runtime/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-client-runtime/client": ["../runtime/lib/types/client/index.d.ts"],
+      "@deepseek-ai/dsh-api-remotes": ["../../api/remotes/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-api-remotes/client": ["../../api/remotes/lib/types/client/index.d.ts"],
+      "@deepseek-ai/dsh-client-web-react": ["../web-react/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-client-ui-layout": ["../ui-layout/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-client-ui-layout/client": ["../ui-layout/lib/types/client/index.d.ts"],
+      "@deepseek-ai/dsh-client-ui-conversation": ["../ui-conversation/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-client-ui-conversation/client": ["../ui-conversation/lib/types/client/index.d.ts"],
+      "@deepseek-ai/dsh-client-locale": ["../locale/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-client-locale/client": ["../locale/lib/types/client/index.d.ts"],
+      "@deepseek-ai/dsh-client-ui-slots": ["../ui-slots/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-client-ui-primitives": ["../ui-primitives/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-invariants": ["../../runtime-diagnostics/invariants/lib/types/index.d.ts"],
+      "@deepseek-ai/cordis": ["../../../vendor/cordis/lib/types/index.d.ts"]
+    }
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "../../../vendor/cordis"
+    },
+    {
+      "path": "../ui-slots"
+    },
+    {
+      "path": "../runtime"
+    },
+    {
+      "path": "../ui-primitives"
+    },
+    {
+      "path": "../web-react"
+    },
+    {
+      "path": "../ui-layout"
+    },
+    {
+      "path": "../ui-conversation"
+    },
+    {
+      "path": "../locale"
+    },
+    {
+      "path": "../../runtime-diagnostics/invariants"
+    },
+    {
+      "path": "../../api/remotes/tsconfig.client.json"
+    }
+  ]
+}

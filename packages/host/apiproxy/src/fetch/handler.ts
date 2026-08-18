@@ -65,6 +65,10 @@ import {
 } from '../api/credentials.schema.ts'
 import { llmDiscoverModelsRequestSchema, llmModelsRequestSchema, llmProvidersRequestSchema } from '../api/llm.schema.ts'
 import {
+  memoryConfigRequestSchema, memoryDeleteRequestSchema, memoryGetRequestSchema,
+  memoryListRequestSchema, memoryStatusRequestSchema, memoryUpdateRequestSchema,
+} from '../api/memory.schema.ts'
+import {
   subagentHistoryRequestSchema,
   subagentInterruptRequestSchema,
   subagentListRequestSchema,
@@ -140,6 +144,12 @@ const UNARY_ROUTES: UnaryRoutes = {
   'llm.providers': { schema: llmProvidersRequestSchema, invoke: (api, r) => api.llm.providers(r) },
   'llm.models': { schema: llmModelsRequestSchema, invoke: (api, r) => api.llm.models(r) },
   'llm.discoverModels': { schema: llmDiscoverModelsRequestSchema, invoke: (api, r, signal) => api.llm.discoverModels(r, signal) },
+  'memory.status': { schema: memoryStatusRequestSchema, invoke: (api, r) => api.memory.status(r) },
+  'memory.list': { schema: memoryListRequestSchema, invoke: (api, r) => api.memory.list(r) },
+  'memory.get': { schema: memoryGetRequestSchema, invoke: (api, r) => api.memory.get(r) },
+  'memory.delete': { schema: memoryDeleteRequestSchema, invoke: (api, r) => api.memory.delete(r) },
+  'memory.update': { schema: memoryUpdateRequestSchema, invoke: (api, r) => api.memory.update(r) },
+  'memory.config': { schema: memoryConfigRequestSchema, invoke: (api, r) => api.memory.config(r) },
 }
 
 /** Route lookup that narrows an arbitrary path segment to a map key (single cast point for the string→key refinement). */

@@ -71,6 +71,16 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
      */
     'details': { kind: 'single'; scope: 'session'; owner: DetailsOwnerProps }
     /**
+     * The portable-docs column, shown when the layout opens it. OCCUPIED by
+     * ui-docs' DocsPanel, which renders the memory system's portable docs for
+     * the current session — registering here replaces the column. Absent an
+     * occupant the column renders nothing.
+     *
+     * No owner props: the framework injects the session id and hooks for the
+     * `session` scope, and `ctx.layout` owns whether the column is open.
+     */
+    'docs': { kind: 'single'; scope: 'session'; owner: DocsOwnerProps }
+    /**
      * Frame-wide floating layer, above every column and outside their scroll
      * containers. Deliberately generic and unowned by any feature: a badge, a
      * toast stack or a status pill all belong here, and entries order among
@@ -104,6 +114,9 @@ export interface ConvOwnerProps {}
 /** Details owner share: empty — sessionId arrives as a framework-standard prop. */
 export interface DetailsOwnerProps {}
 
+/** Docs owner share: empty — sessionId arrives as a framework-standard prop. */
+export interface DocsOwnerProps {}
+
 /** Required services (cordis fiber inject — the loader passes all module exports as an object plugin). */
 export const inject = ['slots', 'theme']
 
@@ -123,6 +136,7 @@ export function apply(ctx: ClientContext): void {
         'sidebar': { kind: 'single', scope: 'root' },
         'conversation': { kind: 'single', scope: 'session-maybe' },
         'details': { kind: 'single', scope: 'session' },
+        'docs': { kind: 'single', scope: 'session' },
         'shell.overlay': { kind: 'list', scope: 'root' },
       },
       // Exclusive store: the factory itself — the framework instantiates per

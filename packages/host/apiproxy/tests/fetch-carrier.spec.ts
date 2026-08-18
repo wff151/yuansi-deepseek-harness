@@ -282,6 +282,26 @@ function fakeApi(overrides: Partial<{ muxFrames: MuxFrame[]; hostFrames: HostFra
         return { rpcId: request.rpcId, result: { ok: true, value: { models: [] } } }
       },
     },
+    memory: {
+      async status(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { memoryCount: 0, injectContext: true, counts: { public: 0, shortTerm: 0, permanent: 0, portable: 0, evolution: 0 } } } }
+      },
+      async list(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { entries: [] } } }
+      },
+      async get(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { type: 'public', id: request.payload.id, title: '', summary: '', timestamp: '', data: {} } } }
+      },
+      async delete(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { deleted: false } } }
+      },
+      async update(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { type: 'public', id: request.payload.id, title: '', summary: '', timestamp: '', data: {} } } }
+      },
+      async config(request) {
+        return { rpcId: request.rpcId, result: { ok: true, value: { injectContext: true } } }
+      },
+    },
     events: {
       mux: (_request, signal) => stream(muxFrames, signal),
       host: (_request, signal) => stream(hostFrames, signal),

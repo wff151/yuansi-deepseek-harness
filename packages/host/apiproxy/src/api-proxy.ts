@@ -34,10 +34,13 @@ import {
   SETTINGS_NAMESPACE as AGENT_PRESET_SETTINGS_NAMESPACE, UnknownPresetError,
 } from '@deepseek-ai/dsh-agent-presets'
 import type { PresetBearingSession } from '@deepseek-ai/dsh-agent-presets'
+// Type-only: resolves `ctx.memory` (the MemoryFacility service) to the memory
+// store the memory domain reads and writes.
+import type {} from '@deepseek-ai/dsh-memory'
 import type {} from '@deepseek-ai/dsh-tools'
 import type {
   ApiProxy, ConfigurableProviderView, CredentialView, GoalRef, HistoryEntry, HostFrame,
-  ModelCatalogFailure, ModelProviderGroup,
+  MemoryEntryView, ModelCatalogFailure, ModelProviderGroup,
   ModelReasoning, MuxFrame, PromptContentPart, QuestionResponsePayload, SessionListMetadata, SessionProjectionsBlock, SessionSearchItem,
   QueuedInboxItem, SessionSummary, SettingsNamespaceView, SubagentAddress, JobView, ToolEventView,
   WorkspaceId, WorkspaceView,
@@ -3423,6 +3426,233 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
             details: { settingsNs, ...baseURL === undefined ? {} : { baseURL } },
           })
         }
+      },
+    },
+
+    memory: {
+      async status(request) {
+        const memory = ctx.get('memory')
+        if (memory?.store === undefined) {
+          return err(request, { code: 'memory-unavailable', message: 'memory system is not mounted', details: {} })
+        }
+        const store = memory.store
+        return ok(request, {
+          memoryCount: store.memoryCount,
+          ...(store.lastWriteAt === undefined ? {} : { lastWriteAt: store.lastWriteAt }),
+          injectContext: store.injectContext,
+          counts: {
+            public: store.listAllPublicMemories().length,
+            shortTerm: store.listShortTerm('daily').length + store.listShortTerm('work').length,
+            permanent: 2, // daily + work profiles
+            portable: store.listPortableDocs().length,
+            evolution: store.listAllEvolution().length,
+          },
+        })
+      },
+
+      async list(request) {
+        const memory = ctx.get('memory')
+        if (memory?.store === undefined) {
+          return err(request, { code: 'memory-unavailable', message: 'memory system is not mounted', details: {} })
+        }
+        const store = memory.store
+        const type = request.payload.type
+        const mode = request.payload.mode as 'daily' | 'work' | undefined
+        const limit = request.payload.limit ?? 200
+        const entries: MemoryEntryView[] = []
+
+        const addEntry = (entry: MemoryEntryView): void => {
+          if (limit !== undefined && entries.length >= limit) return
+          entries.push(entry)
+        }
+
+        const matchesType = (t: string): boolean => type === undefined || type === t
+
+        if (matchesType('public')) {
+          const all = mode !== undefined ? store.listPublicMemories(mode) : store.listAllPublicMemories()
+          for (const m of all) {
+            addEntry({
+              type: 'public',
+              id: m.memory_id,
+              title: m.title,
+              summary: m.summary,
+              timestamp: m.time,
+              tags: m.tags,
+              mode: m.mode,
+              data: m as unknown as Record<string, unknown>,
+            })
+          }
+        }
+
+        if (matchesType('short_term')) {
+          for (const m of ['daily', 'work'] as const) {
+            if (mode !== undefined && mode !== m) continue
+            for (const item of store.listShortTerm(m)) {
+              addEntry({
+                type: 'short_term',
+                id: item.id,
+                title: item.content.slice(0, 80),
+                summary: item.content,
+                timestamp: item.createdAt,
+                tags: item.tags,
+                mode: item.mode,
+                data: item as unknown as Record<string, unknown>,
+              })
+            }
+          }
+        }
+
+        if (matchesType('permanent')) {
+          for (const m of ['daily', 'work'] as const) {
+            if (mode !== undefined && mode !== m) continue
+            const profile = store.getPermanent(m)
+            const attrNames = Object.keys(profile.attributes)
+            const prefNames = Object.keys(profile.preferences)
+            addEntry({
+              type: 'permanent',
+              id: m,
+              title: `用户画像（${m === 'daily' ? '日常' : '工作'}）`,
+              summary: `属性: ${attrNames.length}项, 喜好: ${prefNames.length}项, 技能: ${profile.skills.length}个, 关系: ${profile.relationships.length}个`,
+              timestamp: '',
+              mode: m,
+              data: profile as unknown as Record<string, unknown>,
+            })
+          }
+        }
+
+        if (matchesType('portable_doc')) {
+          for (const doc of store.listPortableDocs()) {
+            if (mode !== undefined && doc.mode !== mode) continue
+            addEntry({
+              type: 'portable_doc',
+              id: String(doc.sessionId),
+              title: doc.title || `会话 ${doc.sessionId}`,
+              summary: doc.summary,
+              timestamp: doc.log.length > 0 ? doc.log[doc.log.length - 1]!.time : '',
+              tags: doc.tags,
+              mode: doc.mode,
+              data: doc as unknown as Record<string, unknown>,
+            })
+          }
+        }
+
+        if (matchesType('agent_evolution')) {
+          const all = store.listAllEvolution()
+          for (const ev of all) {
+            if (mode !== undefined) continue
+            addEntry({
+              type: 'agent_evolution',
+              id: ev.id,
+              title: `[${ev.type}] ${ev.id}`,
+              summary: ev.type,
+              timestamp: ev.timestamp,
+              data: ev as unknown as Record<string, unknown>,
+            })
+          }
+        }
+
+        return ok(request, { entries })
+      },
+
+      async get(request) {
+        const memory = ctx.get('memory')
+        if (memory?.store === undefined) {
+          return err(request, { code: 'memory-unavailable', message: 'memory system is not mounted', details: {} })
+        }
+        const store = memory.store
+        const { type, id } = request.payload
+
+        let entry: MemoryEntryView | undefined
+
+        if (type === 'public') {
+          const m = store.getPublicMemory(id as never)
+          if (m !== undefined) {
+            entry = {
+              type: 'public', id: m.memory_id, title: m.title, summary: m.summary,
+              timestamp: m.time, tags: m.tags, mode: m.mode, data: m as unknown as Record<string, unknown>,
+            }
+          }
+        } else if (type === 'permanent' && (id === 'daily' || id === 'work')) {
+          const profile = store.getPermanent(id)
+          entry = {
+            type: 'permanent', id, title: `用户画像（${id}）`,
+            summary: `${Object.keys(profile.attributes).length}项属性`,
+            timestamp: '', mode: id, data: profile as unknown as Record<string, unknown>,
+          }
+        } else if (type === 'portable_doc') {
+          const doc = store.getPortableDoc(id as never)
+          if (doc !== undefined) {
+            entry = {
+              type: 'portable_doc', id: String(doc.sessionId), title: doc.title, summary: doc.summary,
+              timestamp: doc.log.length > 0 ? doc.log[doc.log.length - 1]!.time : '',
+              tags: doc.tags, mode: doc.mode, data: doc as unknown as Record<string, unknown>,
+            }
+          }
+        }
+
+        if (entry === undefined) {
+          return err(request, { code: 'not-found', message: `memory entry "${type}/${id}" not found`, details: {} })
+        }
+        return ok(request, entry)
+      },
+
+      async delete(request) {
+        const memory = ctx.get('memory')
+        if (memory?.store === undefined) {
+          return err(request, { code: 'memory-unavailable', message: 'memory system is not mounted', details: {} })
+        }
+        const store = memory.store
+        const { type, id } = request.payload
+        let deleted = false
+        if (type === 'public') deleted = await store.deletePublicMemory(id as never)
+        else if (type === 'short_term') deleted = await store.deleteShortTerm(id)
+        else if (type === 'portable_doc') deleted = await store.deletePortableDoc(id as never)
+        else if (type === 'agent_evolution') deleted = await store.deleteEvolution(id as never)
+        return ok(request, { deleted })
+      },
+
+      async update(request) {
+        const memory = ctx.get('memory')
+        if (memory?.store === undefined) {
+          return err(request, { code: 'memory-unavailable', message: 'memory system is not mounted', details: {} })
+        }
+        const store = memory.store
+        const { type, id, patch } = request.payload
+        let next: MemoryEntryView | undefined
+
+        if (type === 'public') {
+          const m = await store.updatePublicMemory(id as never, patch as never)
+          if (m !== undefined) {
+            next = { type: 'public', id: m.memory_id, title: m.title, summary: m.summary,
+              timestamp: m.time, tags: m.tags, mode: m.mode, data: m as unknown as Record<string, unknown> }
+          }
+        } else if (type === 'permanent' && (id === 'daily' || id === 'work')) {
+          const profile = store.getPermanent(id)
+          const merged = { ...profile, ...patch }
+          if (typeof patch.attributes === 'object' && patch.attributes !== null) merged.attributes = { ...profile.attributes, ...patch.attributes as Record<string, unknown> }
+          if (typeof patch.preferences === 'object' && patch.preferences !== null) merged.preferences = { ...profile.preferences, ...patch.preferences as Record<string, unknown> }
+          const replaced = await store.replacePermanent(id, merged)
+          next = { type: 'permanent', id, title: `用户画像（${id}）`,
+            summary: `${Object.keys(replaced.attributes).length}项属性`,
+            timestamp: '', mode: id, data: replaced as unknown as Record<string, unknown> }
+        }
+
+        if (next === undefined) {
+          return err(request, { code: 'not-found', message: `memory entry "${type}/${id}" not found`, details: {} })
+        }
+        return ok(request, next)
+      },
+
+      async config(request) {
+        const memory = ctx.get('memory')
+        if (memory?.store === undefined) {
+          return err(request, { code: 'memory-unavailable', message: 'memory system is not mounted', details: {} })
+        }
+        const store = memory.store
+        if (request.payload.injectContext !== undefined) {
+          await store.setInjectContext(request.payload.injectContext)
+        }
+        return ok(request, { injectContext: store.injectContext })
       },
     },
 

@@ -2926,6 +2926,28 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
         details: { ns: request.payload.ns },
       }),
     },
+    memory: {
+      // The fixture hosts no memory plugin; the domain answers the contract
+      // shape with an empty system so surfaces can render their empty states.
+      status: request => ok(request, {
+        memoryCount: 0,
+        injectContext: false,
+        counts: { public: 0, shortTerm: 0, permanent: 0, portable: 0, evolution: 0 },
+      }),
+      list: request => ok(request, { entries: [] }),
+      get: request => err(request, {
+        code: 'not-found',
+        message: `fixture: no memory entry ${request.payload.type}/${request.payload.id}`,
+        details: {},
+      }),
+      delete: request => ok(request, { deleted: false }),
+      update: request => err(request, {
+        code: 'not-found',
+        message: `fixture: no memory entry ${request.payload.type}/${request.payload.id}`,
+        details: {},
+      }),
+      config: request => ok(request, { injectContext: request.payload.injectContext ?? false }),
+    },
     credentials: {
       describe: request => ok(request, {
         credentials: Object.fromEntries(request.payload.refs.map(ref => [ref, {
@@ -3129,6 +3151,12 @@ export class FixtureApiClient extends AbstractApiClient {
       case 'llm.providers': return this.api.llm.providers(request)
       case 'llm.models': return this.api.llm.models(request)
       case 'llm.discoverModels': return this.api.llm.discoverModels(request, signal)
+      case 'memory.status': return this.api.memory.status(request)
+      case 'memory.list': return this.api.memory.list(request)
+      case 'memory.get': return this.api.memory.get(request)
+      case 'memory.delete': return this.api.memory.delete(request)
+      case 'memory.update': return this.api.memory.update(request)
+      case 'memory.config': return this.api.memory.config(request)
     }
   }
 

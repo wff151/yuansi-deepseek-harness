@@ -24,7 +24,8 @@
 
 import { createRequire } from 'node:module'
 import {
-  existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, symlinkSync, unlinkSync, writeFileSync,
+  copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, rmdirSync,
+  rmSync, statSync, symlinkSync, writeFileSync,
 } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import type { EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
@@ -167,7 +168,67 @@ export function initProfile(dir: string, bundles: readonly string[]): void {
   if (!existsSync(workspacePath)) writeFileSync(workspacePath, PROFILE_PNPM_WORKSPACE)
 }
 
-/** Ensure `link` is a symlink to `target`, replacing a wrong or dangling link; a real directory throws. */
+/** Whether `link` resolves to a usable directory (a junction whose target a
+ * sandboxed environment virtualized is not). */
+function junctionUsable(link: string): boolean {
+  try {
+    return statSync(link).isDirectory()
+  } catch {
+    return false
+  }
+}
+
+/** Recursively copy a package directory into the fallback, skipping its own
+ * `node_modules` (dependencies resolve through the ordinary parent-walk from
+ * the shared fallback) and any symlinks (which a sandboxed environment may
+ * have virtualized into unreadable reparse points). */
+function copyFallbackPackage(link: string, target: string): void {
+  try {
+    // A broken junction left by symlinkSync must be removed before the copy
+    // can create a real directory in its place. rmdir removes a junction's
+    // reparse point directly; rmSync can leave a phantom entry behind in
+    // sandboxed environments.
+    try {
+      rmdirSync(link)
+    } catch {
+      try {
+        rmSync(link, { recursive: true, force: true })
+      } catch {
+        // Fall through; mkdirSync below surfaces a genuinely blocked path.
+      }
+    }
+    mkdirSync(link, { recursive: true })
+    const copy = (from: string, to: string): void => {
+      for (const name of readdirSync(from)) {
+        if (name === 'node_modules') continue
+        const src = join(from, name)
+        const dst = join(to, name)
+        let st
+        try {
+          st = lstatSync(src)
+        } catch {
+          continue
+        }
+        if (st.isSymbolicLink()) continue
+        if (st.isDirectory()) {
+          mkdirSync(dst, { recursive: true })
+          copy(src, dst)
+        } else {
+          copyFileSync(src, dst)
+        }
+      }
+    }
+    copy(target, link)
+  } catch {
+    // Best effort: the fallback is an optimization — a failed copy leaves the
+    // entry absent and resolution falls back to the ordinary parent-walk.
+  }
+}
+
+/** Ensure `link` is a symlink to `target`, replacing a wrong or dangling link;
+ * a real directory is left alone. When the environment cannot produce a usable
+ * junction (a sandboxed target gets virtualized), the package is copied into
+ * the fallback instead so the entry stays resolvable. */
 function ensureSymlink(link: string, target: string): void {
   let stat
   try {
@@ -179,25 +240,55 @@ function ensureSymlink(link: string, target: string): void {
   }
   if (stat !== undefined) {
     if (!stat.isSymbolicLink()) {
-      throw new Error(`dsh: ${link} exists and is not a symlink; remove it so dsh can manage the installation fallback`)
+      // A real directory (e.g. from a non-symlink install) shadows the
+      // fallback entry; leave it rather than delete user data. The fallback
+      // is an optimization — packages still resolve through the ordinary
+      // parent-walk from the installation and profile directories.
+      return
     }
-    if (readlinkSync(link) === target) return
-    // unlink deletes the reparse point itself on Windows too; rmSync treats a
-    // junction as a directory and throws EISDIR unless recursive.
-    unlinkSync(link)
+    if (junctionUsable(link)) {
+      let current: string | undefined
+      try {
+        current = readlinkSync(link)
+      } catch {
+        current = undefined
+      }
+      if (current === target) return
+    }
+    try {
+      // rmdir removes the reparse point itself on Windows; rmSync alone can
+      // leave a phantom entry behind in sandboxed environments.
+      rmdirSync(link)
+    } catch {
+      try {
+        rmSync(link, { recursive: true, force: true })
+      } catch {
+        // An unreadable junction usually cannot be removed either; leave it.
+        return
+      }
+    }
   }
   try {
     symlinkSync(target, link, 'junction')
   } catch (error) {
-    // Concurrent launches heal the same fallback; losing the race to a
-    // process writing the identical link is success, anything else is not.
-    // The window between the lstat miss above and this write cannot be
-    // staged deterministically from the public API.
-    /* v8 ignore next 4 */
-    if ((error as NodeJS.ErrnoException).code !== 'EEXIST'
-      || !lstatSync(link).isSymbolicLink() || readlinkSync(link) !== target) {
-      throw error
+    // Best effort: a junction that cannot be created (e.g. a sandboxed
+    // target) is skipped — the fallback entry stays absent and resolution
+    // falls back to the ordinary parent-walk. A concurrent launch winning
+    // the race with the identical link is equally fine.
+    if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
+      let current: string | undefined
+      try {
+        current = lstatSync(link).isSymbolicLink() ? readlinkSync(link) : undefined
+      } catch {
+        current = undefined
+      }
+      if (current === target) return
     }
+  }
+  if (!junctionUsable(link)) {
+    // The junction was created but its target is virtualized and unusable;
+    // replace it with a real directory copy so the entry resolves.
+    copyFallbackPackage(link, target)
   }
 }
 
