@@ -2,6 +2,8 @@
 
 [English](README.md) | 中文
 
+> **基于 DeepSeek Harness 修改**：本项目是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的修改分支（fork），在保留原框架全部能力的基础上，集成了记忆系统：持久化记忆插件（`dsh-memory`）、聊天界面旁可查阅编辑文档的随身文档面板（`ui-docs`），以及记忆设置页（`ui-settings-memory`）。原项目由 [DeepSeek AI](https://deepseek.com) 开发，采用 [MIT](LICENSE) 许可证。
+
 DeepSeek Harness（`dsh`）是由 [DeepSeek AI](https://deepseek.com) 开发的开源 agent harness（智能体框架）。
 
 它采用**一切皆插件**的架构，并由 [Cordis](https://github.com/cordiverse/cordis) 驱动，其设计参见论文 [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper)。
@@ -66,6 +68,14 @@ pnpm dsh web
 请先阅读[开发指南](docs/development.md)与[架构文档](docs/architecture.md)。
 
 面向 agent：请遵循 [AGENTS.md](AGENTS.md)。
+
+## 致谢
+
+- [DeepSeek AI](https://deepseek.com) —— 本项目所基于的 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的原作者。
+
+## 贡献者
+
+- [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（由 [DeepSeek AI](https://deepseek.com) 开发）—— 本 fork 所基于的上游项目及其原贡献者。
 
 ## 许可证
 
