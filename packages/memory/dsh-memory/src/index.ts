@@ -10,6 +10,7 @@
 
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
+import type {} from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-storage-domain'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 import type {} from '@deepseek-ai/dsh-tools'
@@ -103,6 +104,21 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
   facility.opened = store
 
   registerMemoryTools(ctx, store)
+
+  // Auto-record every user exchange into the session's portable doc. The
+  // portable doc is the session's working memory; relying on the model to call
+  // memory_portable_doc leaves it empty for models that never invoke the tool.
+  ctx.on('agent/inbox/claimed', ({ agent, message }) => {
+    if (message.source.kind !== 'user') return
+    const text = message.content
+      .filter((block): block is { type: 'text'; text: string } => block.type === 'text')
+      .map(block => block.text)
+      .join('\n')
+    if (text.trim() === '') return
+    void store.recordExchange(agent.session.id, text).catch((error: unknown) => {
+      ctx.logger.warn(`memory: auto-record exchange failed: ${String(error)}`)
+    })
+  })
 
   if (resolved.injectContext) {
     registerMemoryContext(ctx, store)

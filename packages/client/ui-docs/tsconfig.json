@@ -13,7 +13,8 @@
       "@deepseek-ai/dsh-client-runtime/client": ["../runtime/lib/types/client/index.d.ts"],
       "@deepseek-ai/dsh-api-remotes": ["../../api/remotes/lib/types/index.d.ts"],
       "@deepseek-ai/dsh-api-remotes/client": ["../../api/remotes/lib/types/client/index.d.ts"],
-      "@deepseek-ai/dsh-client-web-react": ["../web-react/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-client-ui-renderer": ["../ui-renderer/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-client-ui-renderer/client": ["../ui-renderer/lib/types/client/index.d.ts"],
       "@deepseek-ai/dsh-client-ui-layout": ["../ui-layout/lib/types/index.d.ts"],
       "@deepseek-ai/dsh-client-ui-layout/client": ["../ui-layout/lib/types/client/index.d.ts"],
       "@deepseek-ai/dsh-client-ui-conversation": ["../ui-conversation/lib/types/index.d.ts"],
@@ -43,7 +44,7 @@
       "path": "../ui-primitives"
     },
     {
-      "path": "../web-react"
+      "path": "../ui-renderer"
     },
     {
       "path": "../ui-layout"

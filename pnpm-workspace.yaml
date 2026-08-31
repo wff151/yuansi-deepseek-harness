@@ -1,3 +1,6 @@
+# pnpm 11+ reads this from pnpm-workspace.yaml, not .npmrc
+verifyDepsBeforeRun: false
+
 packages:
   - vendor/*
   - packages/*/*
@@ -31,6 +34,12 @@ overrides:
 peerDependencyRules:
   allowedVersions:
     typescript: '>=5 <7'
+
+# 跳过 Codex / Claude Code 子代理所需的 win32-x64 原生二进制可选包，
+# 避免镜像源下载挂起阻塞 pnpm install；这两个子代理不影响 `dsh web` 启动。
+ignoredOptionalDependencies:
+  - '@openai/codex-win32-x64'
+  - '@anthropic-ai/claude-agent-sdk-win32-x64'
 
 # pnpm 10+ blocks any dependency shipping an install/build script until it is
 # explicitly reviewed here (strictDepBuilds defaults to true: an unlisted script

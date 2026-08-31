@@ -5,7 +5,7 @@
  */
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
-import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-web-react'
+import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-ui-renderer/client'
 // Type-only: pulls the ui-layout SlotMap merge (the 'docs' entry) and ctx.layout.
 import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 // Type-only: pulls the ui-conversation SlotMap merge (the header actions).

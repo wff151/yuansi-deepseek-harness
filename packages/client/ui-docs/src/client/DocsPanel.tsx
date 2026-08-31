@@ -12,7 +12,7 @@ import {
   Button, IconChevronLeftOutline14, IconCloseOutline16, IconEditOutline16,
   IconListPenOutline16, IconRefreshOutline16, IconTrashOutline16, Modal,
 } from '@deepseek-ai/dsh-client-ui-primitives'
-import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-web-react'
+import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { messageOf } from './store.ts'
 import type { DocsState, DocsStore } from './store.ts'
 import type { en } from './locales.ts'

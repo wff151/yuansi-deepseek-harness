@@ -4,9 +4,13 @@
     "rootDir": "src",
     "outDir": "lib/types",
     "paths": {
-      "react": ["../../../node_modules/.pnpm/react@18.3.1/node_modules/react"],
-      "react/jsx-runtime": ["../../../node_modules/.pnpm/react@18.3.1/node_modules/react/jsx-runtime"],
-      "@types/react": ["../../../node_modules/.pnpm/@types+react@18.3.31/node_modules/@types/react"]
+      "react": ["../../../node_modules/.pnpm/@types+react@18.3.31/node_modules/@types/react"],
+      "react/jsx-runtime": ["../../../node_modules/.pnpm/@types+react@18.3.31/node_modules/@types/react/jsx-runtime.d.ts"],
+      "csstype": ["../../../node_modules/.pnpm/csstype@3.2.3/node_modules/csstype"],
+      "prop-types": ["../../../node_modules/.pnpm/@types+prop-types@15.7.15/node_modules/@types/prop-types"],
+      "@types/react": ["../../../node_modules/.pnpm/@types+react@18.3.31/node_modules/@types/react"],
+      "@deepseek-ai/dsh-client-ui-renderer": ["../ui-renderer/lib/types/index.d.ts"],
+      "@deepseek-ai/dsh-client-ui-renderer/client": ["../ui-renderer/lib/types/client/index.d.ts"]
     }
   },
   "include": [
@@ -26,7 +30,7 @@
       "path": "../ui-primitives"
     },
     {
-      "path": "../web-react"
+      "path": "../ui-renderer"
     },
     {
       "path": "../ui-settings"

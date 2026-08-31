@@ -1,66 +1,80 @@
-# DeepSeek Harness
+# DeepSeek Harness (with Memory)
 
 English | [中文](README.zh.md)
 
-> **Fork of DeepSeek Harness**: This repository is a modified fork of [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). It keeps all the capabilities of the original framework and adds a memory system on top: a durable memory plugin (`dsh-memory`), a portable-docs panel (`ui-docs`) for browsing and editing documents beside the conversation, and a memory settings page (`ui-settings-memory`). The original project is developed by [DeepSeek AI](https://deepseek.com) and released under the [MIT](LICENSE) license.
+> **Fork of DeepSeek Harness**: This repository is a modified fork of [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). It keeps all the capabilities of the original framework and adds a *memory system* on top:
+> - **`dsh-memory`** — a durable memory plugin providing public memory, short-term working memory, a permanent user profile, portable docs, and agent evolution;
+> - **`ui-docs`** — a portable-docs panel to browse and edit each session's documents beside the conversation;
+> - **`ui-settings-memory`** — a memory settings page to inspect and manage each memory subsystem.
+>
+> The original project is developed by [DeepSeek AI](https://deepseek.com) and released under the [MIT](LICENSE) license.
 
-DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com).
+DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com). It is built on an architecture where **everything is a plugin**, powered by [Cordis](https://github.com/cordiverse/cordis).
 
-It uses an architecture where **everything is a plugin**, and is powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).
+## Highlights
 
-## Developer preview
+- **Everything is a plugin**: all upstream capabilities are preserved, and extensions are layered on a new memory foundation.
+- **Automatic conversation capture**: every user message is automatically recorded into the session's *portable doc*, no tool call required, building a searchable session working memory over time.
+- **Multi-level memory**: public memory (long-term, dated and tagged), short-term working memory (weighted, decaying), a permanent user profile (attributes, preferences, skills, relationships), portable docs (per session), and agent evolution (error logs, rules, reflections).
+- **Local-model first**: supports local / self-hosted models (OpenAI-compatible endpoints), no cloud dependency, data stays on your machine.
+- **One-click start on Windows**: ships `start-web.bat` that detects and stops the process occupying the port before starting the service.
 
-DeepSeek Harness is currently in _developer preview_ and is iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+> This project is currently in _developer preview_ and is iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES** — use with care in production.
+
+<a id="run"></a>
 
 ## Run
 
-### Run from `npm`
-
-Install `Node.js`, then run:
+### Clone from GitHub
 
 ```sh
-npx @deepseek-ai/dsh web
-```
-
-The command starts the Web UI at `http://127.0.0.1:3080` by default and opens it in the default browser for a local launch. An SSH launch only prints the host URL because the SSH client or editor owns the local forwarded address. Pass `--no-open` to run the server without opening a browser. See [Web UI guide](docs/user/guide/index.md).
-
-### Run from source
-
-To run from a repository checkout:
-
-```sh
-git clone https://github.com/deepseek-ai/deepseek-harness.git
-cd deepseek-harness
+git clone https://github.com/wff151/yuansi-deepseek-harness.git
+cd yuansi-deepseek-harness
 pnpm install
 pnpm run build
+```
+
+`pnpm run build` prepares the repository artifacts; `pnpm dsh web` uses those built artifacts without rebuilding.
+
+### Start the Web UI
+
+```sh
 pnpm dsh web
 ```
 
-`pnpm run build` prepares the repository artifacts. `pnpm dsh web` uses those built artifacts without rebuilding.
+The command starts the Web UI at `http://127.0.0.1:3080` by default. For a local launch it also opens the page in the default browser; pass `--no-open` to run the server without opening a browser.
 
-## Community and support
+#### One-click start / restart on Windows
 
-- Feel free to submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
-- Add the [`dsh-plugin`](https://github.com/topics/dsh-plugin) topic to your plugin repository for discoverability.
-- Join <a href="https://discord.gg/Ycq5dCaS4">DeepSeek Harness Discord community</a>.
+On Windows, run `start-web.bat` at the repo root. It finds and stops the process occupying port `3080`, then restarts the service — convenient for day-to-day development.
+
+### Configure a model
+
+This project targets local / self-hosted models (OpenAI-compatible endpoints) by default. In your `dsh` user config, point the model endpoint and API key at your own service (for example `http://127.0.0.1:8080/v1` served by local `llama.cpp`). Model IDs and reasoning settings are all configurable. See the [Web UI guide](docs/user/guide/index.md).
+
+## Memory system
+
+Memory uses the *portable doc* as the session working memory, combined with public memory, a permanent user profile, and agent evolution to form a multi-level, searchable memory system:
+
+- **Portable docs**: one per session, automatically recording each user interaction; browse and edit them in the **portable docs** panel beside the chat.
+- **Public memory**: long-term memory, dated and tagged, searchable across sessions.
+- **Short-term memory**: weighted, decaying working memory for recent context.
+- **Permanent user profile**: the user portrait (preferences, skills, relationships), persistent over time.
+- **Agent evolution**: runtime records such as error logs, rules, and reflections.
+
+Use the **memory settings page** to inspect subsystem status (total writes, per-subsystem counts, context-injection toggle) and manage entries.
+
+## Development
+
+Start with the [development guide](docs/development.md) and [architecture documentation](docs/architecture.md). For agents, follow [AGENTS.md](AGENTS.md).
 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Development
-
-Start with the [development guide](docs/development.md) and [architecture documentation](docs/architecture.md).
-
-For agents, follow [AGENTS.md](AGENTS.md).
-
 ## Acknowledgments
 
 - [DeepSeek AI](https://deepseek.com) — original author of [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness), on which this project is based.
-
-## Contributors
-
-- [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) by [DeepSeek AI](https://deepseek.com) — the upstream project and its original contributors, on which this fork is based.
 
 ## License
 

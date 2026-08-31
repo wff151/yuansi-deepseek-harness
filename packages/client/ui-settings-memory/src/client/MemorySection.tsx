@@ -9,7 +9,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { IApiClient, MemoryEntryView } from '@deepseek-ai/dsh-api-remotes/client'
 import { Button, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
-import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-web-react'
+import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { MEMORY_TYPES, messageOf } from './store.ts'
 import type { MemoryEntryType, MemorySettingsState, MemorySettingsStore } from './store.ts'
 import type { en } from './locales.ts'
@@ -54,7 +54,7 @@ export function MemorySection(props: MemorySectionProps): ReactNode {
 }
 
 function Loaded({ injected }: { injected: MemorySectionInjected }): ReactNode {
-  const { controller, api, t } = injected
+  const { controller, t } = injected
   const state = injected.useSnapshot(snapshot => snapshot)
   const [detailTarget, setDetailTarget] = useState<EntryTarget | undefined>(undefined)
   const [editTarget, setEditTarget] = useState<EntryTarget | undefined>(undefined)

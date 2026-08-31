@@ -39,3 +39,9 @@ apps/web/dist/
 worktrees/
 .agents/worktrees/
 .typert-*/
+
+# TRAE sandbox local artifacts
+.dsh-home/
+node_modules.old/
+node_modules.bak/
+pnpm-lock.yaml.bak-*
